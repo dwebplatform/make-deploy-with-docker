@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t abysswatchers/react-test -f  ./client/Dockerfile.dev ./client
+
+script:
+  - docker run abysswatchers/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t abysswatchers/multi-client ./client
+  - docker build -t abysswatchers/multi-nginx ./nginx
+  - docker build -t abysswatchers/multi-server ./server
+  - docker build -t abysswatchers/multi-worker ./worker 
+  # Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_ID" --password-stdin
+  # take those images and push to docker hub 
+  - docker push abysswatchers/multi-client
+  - docker push abysswatchers/multi-nginx
+  - docker push abysswatchers/multi-server
+  - docker push abysswatchers/multi-worker
+  
